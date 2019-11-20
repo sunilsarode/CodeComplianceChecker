@@ -36,46 +36,8 @@ public:
 
   std::map<IfStmt *, bool> mp;
 
-  bool VisitStmt(Stmt *s)
+  bool VisitIfStmt(IfStmt *ifst)
   {
-
-     
-    // Search for -Statements
-
-    /*if (isa<IfStmt>(s))
-    {
-      IfStmt *ifst = cast<IfStmt>(s);
-      std::cout << ifst->hasElseStorage() << std::endl;
-      //Stmt *ele=ifst->getElse();
-      //std::cout<<ele->getStmtClassName()<<std::endl;
-
-      //fun(ifst);
-    }*/
-
-    for (auto it = s->child_begin(); it != s->child_end(); ++it)
-    {
-      auto statement = *it;
-
-      if (!statement)
-      {
-        continue;
-      }
-
-      if (isa<IfStmt>(statement))
-      {
-        IfStmt *ifst = cast<IfStmt>(statement);
-        //Stmt *ele=ifst->getElse();
-        //std::cout<<ele->getStmtClassName()<<std::endl;
-        fun(ifst);
-      }
-    }
-
-    return true;
-  }
-
-  void fun(IfStmt *ifst)
-  {
-
     // ifst->hasElseStorage is 0 do nothing  --> it mean simply  single if statement with no else
 
     //ifst-> hasElseStorage is 1 and ifst->getElse() is simply else  then it is simple if else statement
@@ -85,7 +47,7 @@ public:
 
     if (ifst->hasElseStorage() == 0)
     {
-      return;
+      return true;
     }
     while (ifst->getElse() != NULL)
     {
@@ -103,13 +65,15 @@ public:
             //generate warning
             FullSourceLoc FullLocation = Context->getFullLoc(ifst->getBeginLoc());
             if (FullLocation.isValid() && !FullLocation.isInSystemHeader())
-              llvm::outs() << " You can have else statement at "
+              llvm::outs() << " All if ... else if constructs shall be terminated with an else statement "
                            << FullLocation.getSpellingLineNumber() << ":"
                            << FullLocation.getSpellingColumnNumber() << "\n";
             break;
           }
-        }else{//it mean we have visited this ifstm previously 
-            break;
+        }
+        else
+        { //it mean we have visited this ifstm previously
+          break;
         }
       }
       else
@@ -117,8 +81,12 @@ public:
         break;
       }
     }
-    
+
+    return true;
   }
+
+
+ 
 
 private:
   ASTContext *Context;
