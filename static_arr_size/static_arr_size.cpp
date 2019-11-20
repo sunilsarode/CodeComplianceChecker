@@ -35,8 +35,8 @@ public:
       : Context(Context) {}
 
 
-  bool VisitArrayType()
-  bool VisitFunctionDecl(FunctionDecl *fd)
+  
+  /*bool VisitFunctionDecl(FunctionDecl *fd)
   {
 
      const FunctionType* ftp=fd->getFunctionType();
@@ -46,7 +46,7 @@ public:
     //std::cout<<""<<std::endl;
 
     return true;
-  }
+  }*/
 
   bool VisitConstantArrayType(ConstantArrayType *T)
   {
