@@ -13,10 +13,10 @@ int main(){
           x++;
      }else if (x==5){
          --x;
-     }/*else{
+     }else{
          cout<<x<<endl;
          
-     }*/
+     }
 
      if(x==9){
           fun();

@@ -123,6 +123,18 @@ public:
 
         //std::cout << q.size() << std::endl;
 
+        /*
+          Putting all the statements in vector_statement in the form of object 
+          My_Data.
+          struct My_Data
+          {
+
+            Stmt *stmt;
+            unsigned int line;
+            unsigned int col;
+          };  
+         */
+
         while (q.size())
         {
 
@@ -149,6 +161,11 @@ public:
           //std::cout << type << std::endl;
         }
 
+        /*
+          sorting vector using line number, statement having line number less shoudl appear 
+          first , if both statement have same line number check for column number. 
+          you can see the comparator.
+        */
         std::sort(vector_statement.begin(), vector_statement.end(), cmp);
 
         std::queue<Stmt *> final_queue;
@@ -158,16 +175,35 @@ public:
           final_queue.push(vector_statement[i].stmt);
         }
 
+        /* iterate over final queue and try to find the case statement having 
+           no break statemtnt 
+           Compliant - empty fall through allows a group */
         while (final_queue.size())
         {
 
           Stmt *qst = final_queue.front();
+          if (!qst)
+          {
+            continue;
+          }
           final_queue.pop();
           std::string type = qst->getStmtClassName();
           //std::cout << type << std::endl;
 
           if (type == "CaseStmt") //does this if require
           {
+
+            CaseStmt *cst = cast<CaseStmt>(qst);
+            Stmt *sub = cst->getSubStmt();
+            if (sub)
+            {
+              std::string subtype = sub->getStmtClassName();
+              if (subtype == "CaseStmt" || subtype == "DefaultStmt")
+              {
+                continue;
+              }
+            }
+
             if (final_queue.size())
             {
               Stmt *inqst = final_queue.front();
@@ -175,6 +211,7 @@ public:
               std::string intype = inqst->getStmtClassName();
               if (intype == "CaseStmt" || intype == "DefaultStmt")
               {
+
                 printMsg(qst);
               }
               else

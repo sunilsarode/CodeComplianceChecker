@@ -6,6 +6,7 @@ int main()
     switch (y)
     {
     case 1:
+      y++;
     case 2:    
     default:
         

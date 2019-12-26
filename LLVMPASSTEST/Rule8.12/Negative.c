@@ -20,7 +20,7 @@ enum day
     saturday
 };
 
-enum state
+/*enum state
 {
     working,
     failed
@@ -29,7 +29,7 @@ enum result
 {
     failed,
     passed
-};
+};*/
 int main()
 {
     enum colour col;

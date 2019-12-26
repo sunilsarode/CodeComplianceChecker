@@ -13,6 +13,7 @@ int main()
         {
 
         case 2:
+        case 4:
             while (1)
             {
                 break;
