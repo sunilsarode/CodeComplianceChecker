@@ -41,22 +41,55 @@ public:
     for (auto it = ED->enumerator_begin(); it != ED->enumerator_end(); it++)
     {
 
-      // std::cout << it->getNameAsString() << " " << it->getInitVal().getSExtValue() << std::endl;
-      if (mp.find(it->getInitVal().getExtValue()) == mp.end())
+      //std::cout << it->getNameAsString() << " " << it->getInitVal().getSExtValue() << std::endl;
+
+      it->getInitExpr();
+
+      Expr *exp = it->getInitExpr();
+      if (exp != NULL)
       {
-        mp[it->getInitVal().getSExtValue()] = it->getNameAsString();
+        /*for (auto it1 = exp->child_begin(); it1 != exp->child_end(); ++it1)
+        {
+          it1->dump();
+        }*/
+        if (mp.find(it->getInitVal().getExtValue()) != mp.end())
+        {
+          FullSourceLoc FullLocation = Context->getFullLoc(ED->getBeginLoc());
+          if (FullLocation.isValid() && !FullLocation.isInSystemHeader())
+            llvm::outs() << " Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique "
+                         << FullLocation.getSpellingLineNumber() << ":"
+                         << FullLocation.getSpellingColumnNumber() << "\n";
+        }
       }
       else
       {
-        FullSourceLoc FullLocation = Context->getFullLoc(ED->getBeginLoc());
-        if (FullLocation.isValid() && !FullLocation.isInSystemHeader())
-          llvm::outs() << " Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique "
-                       << FullLocation.getSpellingLineNumber() << ":"
-                       << FullLocation.getSpellingColumnNumber() << "\n";
+        //implicit declaration
+        mp[it->getInitVal().getSExtValue()] = it->getNameAsString();
       }
     }
     return true;
   }
+
+  /*bool VisitEnumConstantDecl(EnumConstantDecl *ecd)
+  {
+
+    //std::cout <<ecd->getInitVal().getSExtValue()<<" "<<ecd->getNameAsString()<<" "<<ecd->dum<<std::endl;
+    Expr *exp = ecd->getInitExpr();
+    if (exp != NULL)
+    {
+      for (auto it = exp->child_begin(); it != exp->child_end(); ++it)
+      {
+        it->dump();
+      }
+    }
+    else
+    {
+      //implicit declaration
+    }
+
+    //std::cout<<ecd->getNameAsString()<<" "<<ecd->isImplicit()<<" "<<ecd->getCanonicalDecl()->getInitVal().getSExtValue()<<std::endl;
+    return true;
+  }*/
 
 private:
   ASTContext *Context;
