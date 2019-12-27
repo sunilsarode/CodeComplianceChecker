@@ -54,12 +54,15 @@ public:
         std::queue<Stmt *> all_statement_queue;
         SwitchStmt *swt = cast<SwitchStmt>(statement);
         Stmt *st = swt->getBody();
-
+        //if statement is not null then only push in queue 
         if (st)
         {
           q.push(st);
         }
-
+        /*
+            get all the child statements of statemnt and put it in all_statement_queue. do this level by level for all statement that we push in queue 'q'.
+            It is kind of BFS.
+        */
         while (!q.empty())
         {
           Stmt *stmt = q.front();
@@ -87,6 +90,10 @@ public:
         }
         //std::cout << all_statement_queue.size() << std::endl;
 
+        /* 
+          Iterate over the all_statement_queue and get all statement other than CaseStmt,BreakStmt and DefaultStmt . If those statement contain 
+          CaseStmt and DefaultStmt then display the warnings 
+        */
         while (all_statement_queue.size())
         {
 
@@ -99,12 +106,13 @@ public:
             for (auto it = qst->child_begin(); it != qst->child_end(); ++it)
             {
               auto in_statement = *it;
+              //if in_statement is not null then only go ahead
               if (!in_statement)
               {
                 continue;
               }
               std::string type = in_statement->getStmtClassName();
-              /*  compound statement like if will not have break  ,so check only case and default label*/
+              
               if (type == "CaseStmt" || type == "DefaultStmt")
               {
                 FullSourceLoc FullLocation = Context->getFullLoc(in_statement->getBeginLoc());
