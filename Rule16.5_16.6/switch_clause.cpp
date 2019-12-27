@@ -67,6 +67,7 @@ public:
   bool VisitStmt(Stmt *s)
   {
 
+     /* if we have zero number of case statement or all case statements are blank then we report the warnings */
     //pass
     for (auto it = s->child_begin(); it != s->child_end(); ++it)
     {
@@ -136,12 +137,15 @@ public:
     for (auto it = s->child_begin(); it != s->child_end(); ++it)
     {
       auto statement = *it;
-
+      //if statement is null continue with next statement
       if (!statement)
       {
         continue;
       }
-
+      /*
+            Get all the child statements of statemnt and put it in all_switchlabel_queue. do this level by level for all statement that we push in queue 'q'.
+            It is kind of BFS.
+      */
       if (isa<SwitchStmt>(statement))
       {
         std::queue<Stmt *> q;
@@ -180,12 +184,23 @@ public:
             all_switchlabel_queue.push(in_statement);
           }
         }
-       /* while (all_switchlabel_queue.size())
+        /* while (all_switchlabel_queue.size())
         {
           std::cout << all_switchlabel_queue.front()->getStmtClassName() << std::endl;
           all_switchlabel_queue.pop();
         }*/
 
+        /*
+          Putting all the statements in vector_statement in the form of object 
+          My_Data.
+          struct My_Data
+          {
+
+            Stmt *stmt;
+            unsigned int line;
+            unsigned int col;
+          };  
+         */
         std::vector<My_Data> vector_statement;
         while (all_switchlabel_queue.size())
         {
@@ -217,7 +232,20 @@ public:
             vector_statement.push_back(my_data);
           }
         }
+
+        /*
+          sorting vector using line number, statement having line number less should appear 
+          first , if both statement have same line number check for column number. 
+          you can see the comparator.
+        */
+
         std::sort(vector_statement.begin(), vector_statement.end(), cmp);
+
+        /* 
+           if front of the vector or back of the vector is not DefaultStmt , then search for default statement  
+           and  if you found default statment report the warning.
+
+         */
 
         if (vector_statement.size() > 0)
         {
