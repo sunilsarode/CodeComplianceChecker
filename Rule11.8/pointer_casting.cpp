@@ -41,79 +41,69 @@ public:
 
     FullSourceLoc FullLocation = Context->getFullLoc(qst->getBeginLoc());
     if (FullLocation.isValid() && !FullLocation.isInSystemHeader())
-      llvm::outs() << " Rule 11.3 A cast shall not be performed between a pointer to object type and a pointer to a different object type "
+      llvm::outs() << "Rule 11.8 A cast shall not remove any const or volatile qualification from the type pointed to by a pointer "
                    << FullLocation.getSpellingLineNumber() << ":"
                    << FullLocation.getSpellingColumnNumber() << "\n";
   }
 
-  void remove_sub_string(std::string &base_str,std::string remove_str){
-      std::string::size_type i = base_str.find(remove_str);
-      while (i != std::string::npos) {
-        base_str.erase(i, remove_str.length());
-        i = base_str.find(remove_str, i);
-      }
+  int occurrence_string(std::string base_string,std::string search_string){
 
-  } 
+    int occurrences = 0;
+    std::string::size_type start = 0;
+
+    while ((start = base_string.find(search_string, start)) != std::string::npos) {
+        ++occurrences;
+        start += search_string.length();
+    }
+    return occurrences;
+  }
 
   bool VisitCStyleCastExpr(CStyleCastExpr *s)
   {
 
-    //std::cout<<s->getType().getAsString()<<"\n";
-    //std::cout<<s->getSubExpr()->getType().getAsString()<<"\n";
-    std::string cstyle=s->getType().getAsString();
-
-    if(cstyle.find("const")!=std::string::npos){
-         size_t pos=cstyle.find("const");
-         if(pos==0){
-
-            std::string sub1=cstyle.substr(0,6);
-            std::string sub=cstyle.substr(6);
-            remove_sub_string(sub,"const ");
-            cstyle=sub1+sub;
-         }
-    }
-    std::cout<<cstyle<<"\n";
-    remove_sub_string(cstyle,"volatile ");
-
-    std::cout<<cstyle<<"\n";
-
+    
     if(isa<ImplicitCastExpr>(s->getSubExpr())){
 
-                  std::string impcast=s->getSubExpr()->getType().getAsString();
+            std::string impcast=s->getSubExpr()->getType().getAsString();
+            
+            if(impcast.find("const")!=std::string ::npos){
 
-                  if(impcast.find("const")!=std::string::npos){
-                    size_t pos=impcast.find("const");
-                    if(pos==0){
+              std::string cstyle=s->getType().getAsString();
+              int impc_occurrences=occurrence_string(impcast,"const");
+              int cstyle_occurrences=occurrence_string(cstyle,"const");
 
-                        std::string sub1=impcast.substr(0,6);
-                        std::string sub=impcast.substr(6);
-                        remove_sub_string(sub,"const ");
-                        impcast=sub1+sub;
-                    }
-                  }
-                  std::cout<<impcast<<"\n";
-                  remove_sub_string(impcast,"volatile ");
-                  std::cout<<impcast<<"\n";
-                  if(impcast.find("char")==std::string::npos){
-                  
-                    if(cstyle.compare(impcast)!=0&&cstyle.find("char")==std::string::npos){
-                        printMsg(s);
-                    }
-                  }else{//going from char to other type ,non-complaint 
-                        printMsg(s);
-                  }
+              if(cstyle_occurrences<impc_occurrences){
+                  printMsg(s);
+              }
 
-    }else if(isa<UnaryOperator>(s->getSubExpr())){
-        UnaryOperator* uop=cast<UnaryOperator>(s->getSubExpr());
-        std::string str=uop->getType().getAsString();
-        std::cout<<str<<"\n";
-        std::cout<<cstyle<<"\n";
-                if(cstyle.compare(str)!=0){
-                     printMsg(s);
-                }
+            }
+            if(impcast.find("volatile")!=std::string ::npos){
+
+              std::string cstyle=s->getType().getAsString();
+              int impc_occurrences=occurrence_string(impcast,"volatile");
+              int cstyle_occurrences=occurrence_string(cstyle,"volatile");
+
+              if(cstyle_occurrences<impc_occurrences){
+                  printMsg(s);
+              }
+
+            }
+            std::cout<<s->getSubExpr()->getType().isVolatileQualified()<<"\n";
+            std::cout<<s->getType().isVolatileQualified()<<"\n";
+            if(s->getSubExpr()->getType().isVolatileQualified()&&!(s->getType().isVolatileQualified())){
+                  printMsg(s);
+            }
+            
+
+            /*ImplicitCastExpr *impcastExpr=cast<ImplicitCastExpr>(s->getSubExpr());
+            
+            if(isa<DeclRefExpr>(impcastExpr->getSubExpr())){
+                std::string cstyle=s->getType().getAsString();
+                std::string declRef=impcastExpr->getSubExpr()->getType().getAsString();
+                int cstyle_occurrences=occurrence_string(cstyle,"volatile");
+            }*/
+
     }
-
-
 
     return true;
   }
